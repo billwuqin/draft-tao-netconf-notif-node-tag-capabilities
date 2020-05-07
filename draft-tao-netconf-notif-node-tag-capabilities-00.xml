@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!-- This template is for creating an Internet Draft using xml2rfc,               
+    which is available here: http://xml.resource.org. -->
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+<!-- One method to get references from the online citation libraries.             
+    There has to be one entity for each item to be referenced.                    
+    An alternate method (rfc include) is described in the references. -->
+<!ENTITY RFC2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
+<!ENTITY RFC2697 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2697.xml">
+<!ENTITY RFC2698 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2698.xml">
+<!ENTITY RFC6020 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6020.xml">
+]>
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
+<?rfc toc="yes" ?>
+<?rfc tocompact="yes"?>
+<?rfc tocindent="yes"?>
+<?rfc symrefs="yes" ?>
+<?rfc sortrefs="yes"?>
+<?rfc iprnotified="no" ?>
+<?rfc strict="yes" ?>
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<rfc category="std" docName="draft-tao-netconf-notif-node-tag-capabilities-00"
+     ipr="trust200902">
+  <front>
+    <title abbrev="Node Tags Capability">Self-explanation data Node tag
+    capability</title>
+
+    <author fullname="Ran Tao" initials="R." surname="Tao">
+      <organization>Huawei</organization>
+
+      <address>
+        <postal>
+          <street>101 Software Avenue, Yuhua District</street>
+
+          <city>Nanjing</city>
+
+          <region>Jiangsu</region>
+
+          <code>210012</code>
+
+          <country>China</country>
+        </postal>
+
+        <email>taoran20@huawei.com</email>
+      </address>
+    </author>
+
+    <author fullname="Bo Wu" initials="B." surname="Wu">
+      <organization>Huawei</organization>
+
+      <address>
+        <postal>
+          <street>101 Software Avenue, Yuhua District</street>
+
+          <city>Nanjing</city>
+
+          <region>Jiangsu</region>
+
+          <code>210012</code>
+
+          <country>China</country>
+        </postal>
+
+        <email>lana.wubo@huawei.com</email>
+      </address>
+    </author>
+
+    <date year="2019"/>
+
+    <area>OPS Area</area>
+
+    <workgroup>NETCONF Working Group</workgroup>
+
+    <abstract>
+      <t>Before a client application subscribes to updates from a datastore,
+      server capabilities related to "Subscription to YANG Datastores" can be
+      advertised using YANG Instance Data format. These server capabilities
+      can be documented at implement time or reported at run-time.</t>
+
+      <t>This document proposes a YANG module for self-explanation data Node
+      tag capability which augments system Capabilities model and provide
+      additional self-explanation data node attributes associated with node
+      selector within per-node capabilities.</t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section anchor="intro" title="Introduction">
+      <t>As described in [I-D.netconf-notification-capabilities], a server
+      supporting YANG-Push MAY have a number of capabilities such as<list
+          style="symbols">
+          <t>Supported (reporting) periods for periodic subscriptions</t>
+
+          <t>Maximum number of objects that can be sent in an update</t>
+
+          <t>Supported dampening periods for on-change subscriptions</t>
+
+          <t>The set of data nodes for which on-change notification is
+          supported</t>
+        </list></t>
+
+      <t>Notification capability model defined in
+      [I-D.netconf-notification-capabilities] allows a client to discover
+      basic system capability and YANG-Push related capabilities both at
+      implementation-time and run-time. Without using notification capability,
+      it might lead to unexpected failure or additional message exchange for
+      NETCONF clients to discover data models supported by a NETCONF
+      server.</t>
+
+      <t>When the state of all subscriptions of a particular Subscriber to be
+      fetched is huge, filtering queries of operational state on a server
+      based on server capabilities can greatly reduce the amount of data to be
+      streamed out to the destination.</t>
+
+      <t>However without self-explanation indication or instruction
+      information associated with data node conveyed in Notification
+      capability model [I-D.netconf-notification-capabilities] or
+      pre-configured selection filter in the YANG Push model, it is hard for
+      NETCONF clients to automatically select which data objects are of
+      interest using machine to machine interface, e.g., identify a set of
+      objects which have a common characteristic, collect specific object type
+      nodes.</t>
+
+      <t>This document proposes a YANG module for self-explanation data Node
+      tag capability which augments System Capabilities model and provide
+      additional self-explanation data node tag attributes associated with
+      node selector for queries filtering.</t>
+
+      <section title="Terminology">
+        <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+        "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+        "OPTIONAL" in this document are to be interpreted as described in BCP
+        14 [RFC2119] [RFC8174] when, and only when, they appear in all
+        capitals, as shown here.</t>
+      </section>
+    </section>
+
+    <!-- intro -->
+
+    <section title="Self-explanation data Node tag capability">
+      <t>The YANG module ietf-notification-capabilities defined in
+      [I-D.netconf-notification-capabilities] specify the following server
+      capabilities related to YANG Push:<list style="symbols">
+          <t>A set of capabilities related to the amount of notifications the
+          server can send out</t>
+
+          <t>Specification of which data nodes support on-change
+          notifications.</t>
+
+          <t>Capability values can be specified on server level, datastore
+          level or on specific data nodes (and their contained sub-tree) of a
+          specific datastore. Capability values on a smaller, more specific
+          part of the server's data always override more generic values.</t>
+
+          <t>On-change capability is not specified on a server level as
+          different datastores usually have different on-change capabilities.
+          On a datastore level on-change capability for configuration and
+          state data can be specified separately.</t>
+        </list></t>
+
+      <t>These server capabilities can be provided either at implementation
+      time or reported at run time.</t>
+
+      <t>This document augments YANG Push Notification Capabilities model and
+      provide additional data node self explaination attributes associated
+      with node selector within per-node capabilities:<list style="symbols">
+          <t>Specification of which object type nodes, which performance
+          metric nodes, which property related nodes they can push to the
+          target recipient;</t>
+
+          <t>Specification of measurement precision or granularity associated
+          with performance metric related data nodes;</t>
+
+          <t>Specification of operation type associated with performance
+          metric related data nodes;</t>
+
+          <t>Specification of service classification information associated
+          with data nodes;</t>
+
+          <t>Specification of task group information associated with a set of
+          data nodes;</t>
+
+          <t>Specification of group name of a set of data nodes they can push
+          to the target recipient.</t>
+        </list></t>
+
+      <section title="Tree Diagram">
+        <t>The following tree diagram [RFC8340] provides an overview of the
+        data model.</t>
+
+        <figure>
+          <artwork>    module: ietf-self-explaination-capabilities
+    augment /sysc:system-capabilities/sysc:datastore-capabilities/ +
+                                            sysc:per-node-capabilities:
+       +--ro self-describing-attributes * [group-id]
+           +--ro group-id             string
+           +--ro node-tag             tags:tag
+           +--ro node-precision       tags:tag
+           +--ro node-operation-type  tags:tag
+           +--ro node-service-tag*    tags:tag
+           +--ro node-task-tag*       tags:tag</artwork>
+        </figure>
+      </section>
+    </section>
+
+    <section title="YANG Module">
+      <figure>
+        <artwork>&lt;CODE BEGINS&gt; file "ietf-self-explaination-capabilities.yang"
+module ietf-self-explaination-capabilities {
+  yang-version 1.1;
+  namespace urn:ietf:params:xml:ns:yang:ietf-self-explaination-capabilities;
+  prefix sec;
+  import ietf-system-capabilities  { prefix sysc ; }
+  import ietf-data-node-tags {prefix ntags;}
+  organization
+    "IETF NETMOD (Network Modeling) Working Group";
+  contact
+    "WG Web:   &lt;https://tools.ietf.org/wg/netconf/&gt;
+     WG List:  &lt;mailto:netconf@ietf.org&gt;
+
+     Editor:   Ran Tao
+               &lt;mailto:taoran20@huawei.com&gt;";
+  description
+    "This module defines an extension to System Capabilities model 
+     and provides additional self explaination data node tag attributes 
+     associated with node selector for queries filtering.
+
+     The key words 'MUST', 'MUST NOT', 'REQUIRED', 'SHALL', 'SHALL
+     NOT', 'SHOULD', 'SHOULD NOT', 'RECOMMENDED', 'NOT RECOMMENDED',
+     'MAY', and 'OPTIONAL' in this document are to be interpreted as
+     described in BCP 14 (RFC 2119) (RFC 8174) when, and only when,
+     they appear in all capitals, as shown here.
+
+     Copyright (c) 2019 IETF Trust and the persons identified as
+     authors of the code.  All rights reserved.
+
+     Redistribution and use in source and binary forms, with or
+     without modification, is permitted pursuant to, and subject
+     to the license terms contained in, the Simplified BSD License
+     set forth in Section 4.c of the IETF Trust's Legal Provisions
+     Relating to IETF Documents
+     (http://trustee.ietf.org/license-info).
+
+     This version of this YANG module is part of RFC XXXX;
+     see the RFC itself for full legal notices.";
+  augment /inc:datastore-subscription-capabilities/inc:datastore-capabilities
+         /inc:per-node-capabilities {
+     description "Allows per-node capabilities have additional self-explanation attributes";
+     list self-describing-attributes {
+      key group-id;
+      description "self describing attributes for each data node.";
+         leaf node-tag {
+           type ntags:node-tag ;
+           description
+            "Tags associated with the data node within YANG module.
+            See the IANA 'YANG Data Node Tag Prefixes' registry
+            for reserved prefixes and the IANA
+            'IETF YANG Data Node Tags' registry for IETF tags.";
+       }
+         leaf node-precision {
+           type tags:tag;
+           description
+             "The numeric expression precision of performance
+              metric related data node.";
+         }
+         Leaf node-operation-type{
+          type tags:tag;
+          description
+           "Statistics operation of performance metric related
+           data node.";
+         }
+         Leaf-list node-service-tag {
+          type tags:tag;
+          description
+           "The node-service-tag can be used to provide a service
+           classification information (e.g., tunnel, l3vpn,l2vpn)
+           information associated with YANG data node.";
+         }
+         Leaf-list node-task-tag {
+          type tags:tag;
+          description
+           "The node-task-tag can be used to provide a task
+           classification information (e.g., fault management,
+           performance measurement) information associated with
+           YANG data node.";
+         }
+       leaf group-id {
+         type string;
+         description
+          "This group ID is used to identify a set of data nodes
+          of the same group which have a common characteristic.";
+      }
+}
+&lt;CODE ENDS&gt;</artwork>
+      </figure>
+    </section>
+
+    <section title="IANA Considerations">
+      <section anchor="xml" title="Updates to the IETF XML Registry">
+        <t>This document registers a URI in the "IETF XML Registry" [RFC3688].
+        Following the format in [RFC3688], the following registration has been
+        made:</t>
+
+        <figure>
+          <artwork>   URI:
+      urn:ietf:params:xml:ns:yang:ietf-self-explaination-capabilities
+   Registrant Contact:
+      The IESG.
+   XML:
+      N/A; the requested URI is an XML namespace.</artwork>
+        </figure>
+      </section>
+
+      <section anchor="module"
+               title="Updates to the YANG Module Names Registry">
+        <t>This document registers one YANG module in the "YANG Module Names"
+        registry [RFC6020]. Following the format in [RFC6020], the following
+        registration has been made:</t>
+
+        <figure>
+          <artwork>   name:
+      ietf-self-explaination-capabilities
+   namespace:
+      urn:ietf:params:xml:ns:yang:ietf-self-explaination-capabilities
+   prefix:
+      sec
+   reference:
+      RFC XXXX (RFC Ed.: replace XXX with actual RFC number and remove
+      this note.)</artwork>
+        </figure>
+      </section>
+    </section>
+
+    <section anchor="security" title="Security Considerations">
+      <t>The YANG module specified in this document defines a schema for data
+      that is designed to be accessed via network management protocols such as
+      NETCONF [RFC6241] or RESTCONF [RFC8040]. The lowest NETCONF layer is the
+      secure transport layer, and the mandatory-to-implement secure transport
+      is Secure Shell (SSH) [RFC6242]. The lowest RESTCONF layer is HTTPS, and
+      the mandatory-to-implement secure transport is TLS [RFC8446].</t>
+
+      <t>The NETCONF Configuration Access Control Model (NACM) [RFC8341]
+      provides the means to restrict access for particular NETCONF or RESTCONF
+      users to a preconfigured subset of all available NETCONF or RESTCONF
+      protocol operations and content.</t>
+
+      <t>There are a number of data nodes defined in this YANG module that are
+      writable/creatable/deletable (i.e., config true, which is the default).
+      These data nodes may be considered sensitive in some network
+      environments. Write operations (e.g., edit-config) to these data nodes
+      without proper protection can have a negative effect on network
+      operations. These are the subtrees and data nodes and their
+      sensitivity/vulnerability:</t>
+    </section>
+
+    <!---->
+  </middle>
+
+  <back>
+    <references title="Normative References">
+      <?rfc include="reference.RFC.2119.xml"?>
+
+      <?rfc include="reference.RFC.8174.xml"?>
+
+      <?rfc include="reference.RFC.7950.xml"?>
+
+      <?rfc include="reference.RFC.8342.xml"?>
+
+      <?rfc include="reference.RFC.8407.xml"?>
+
+      <?rfc include="reference.RFC.8126.xml"?>
+
+      <?rfc include="reference.RFC.8040.xml"?>
+
+      <?rfc include="reference.RFC.6241.xml"?>
+
+      <?rfc include="reference.RFC.6242.xml"?>
+
+      <?rfc include="reference.RFC.8341.xml"?>
+
+      <?rfc include="reference.RFC.8446.xml"?>
+    </references>
+
+    <references title="Informative References">
+      <?rfc include="reference.RFC.3688.xml"?>
+
+      <?rfc include="reference.RFC.6020.xml"?>
+
+      <?rfc include="reference.RFC.8340.xml"?>
+    </references>
+  </back>
+</rfc>
